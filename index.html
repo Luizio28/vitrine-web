@@ -1,12 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>Loja Impressao 3D</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>3D Printing Catalog & Customizer</title>
 </head>
+<body>
 
-<body>  
-  <p>
-    vitrine
-  </p>
-  <div id="header">
-    Header
-  </div>
+    <!-- HEADER -->
+    <header>
+        <div class="container nav-wrapper">
+            <a href="#" class="brand-logo">
+                <img src="logo.png" alt="iE" class="icon-img">
+                Empresa<span>3D</span>
+            </a>
+
+            <div class="search-container">
+                <img src="search-icon.png" alt="iB" class="search-icon-img">
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar produtos e materiais...">
+            </div>
+
+            <div class="nav-actions">
+                <button class="cart-trigger" id="cartTrigger">
+                    <img src="cart-icon.png" alt="Cart" class="icon-img">
+                    <span>Carrinho</span>
+                    <span class="cart-count" id="cartBadge">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <div class="container main-layout">
+        <!-- SIDEBAR FILTERS -->
+        <aside class="sidebar">
+            <div class="filter-header">
+                <h3>
+                    <img src="filter-icon.png" alt="iF" class="icon-img">
+                    filtrar peças
+                </h3>
+                <button class="reset-btn" id="resetFilters">Reset All</button>
+            </div>
+
+            <!-- CATEGORY FILTER -->
+            <div class="filter-group">
+                <label class="group-title">Categoria</label>
+                <div class="filter-options" id="categoryFilters"></div>
+            </div>
+
+            <!-- MATERIAL FILTER -->
+            <div class="filter-group">
+                <label class="group-title">Material disponível</label>
+                <div class="filter-options" id="materialFilters"></div>
+            </div>
+
+            <!-- PRICE RANGE -->
+            <div class="filter-group">
+                <label class="group-title">Preço inicial limite (R$)</label>
+                <input type="range" id="priceRange" class="range-slider" min="5" max="150" step="5" value="150">
+                <div class="price-display">
+                    <span>$5</span>
+                    <span id="priceRangeValue" style="color: var(--accent-cyan); font-weight:700;">R$ 150</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CATALOG GRID -->
+        <main>
+            <div class="catalog-header">
+                <div class="catalog-results-count" id="resultsCount">Showing all items</div>
+                <select id="sortSelect" class="sort-select">
+                    <option value="default">Relevância</option>
+                    <option value="price-asc">Custo crescente</option>
+                    <option value="price-desc">Custo decrescente</option>
+                    <option value="rating">Mais popular</option>
+                </select>
+            </div>
+
+            <div class="catalog-grid" id="catalogGrid"></div>
+        </main>
+    </div>
+
+    <!-- CUSTOMIZER MODAL -->
+    <div class="modal-overlay" id="customizerModal">
+        <div class="customizer-modal">
+            <!-- LEFT PREVIEW -->
+            <div class="preview-pane">
+                <div class="preview-viewport">
+                    <img id="modalPreviewImg" src="placeholder-detail.jpg" alt="3D Product Customizer Preview">
+                </div>
+                <div class="preview-stats">
+                    <div class="stat-box">
+                        <div class="title">ETempo de impressão</div>
+                        <div class="value" id="calcTime">2h 15m</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="title">Peso</div>
+                        <div class="value" id="calcWeight">45g</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT CONFIGURATION OPTIONS -->
+            <div class="config-pane">
+                <button class="modal-close" id="closeCustomizer">
+                    <img src="close-icon.png" alt="Close">
+                </button>
+
+                <div>
+                    <h2 id="modalProductTitle" style="font-size: 1.25rem; font-weight: 800;">Título de produto</h2>
+                    <p id="modalProductCategory" style="font-size: 0.8rem; color: var(--accent-cyan); text-transform: uppercase; font-weight:700;"></p>
+                </div>
+
+                <!-- MATERIAL -->
+                <div class="option-group">
+                    <label>Material</label>
+                    <div class="select-grid" id="materialSelector">
+                        <button class="btn-select active" data-mat="PLA" data-density="1.24" data-cost="1.0">PLA</button>
+                        <button class="btn-select" data-mat="PETG" data-density="1.27" data-cost="1.2">PETG</button>
+                        <button class="btn-select" data-mat="ABS" data-density="1.04" data-cost="1.15">ABS</button>
+                        <button class="btn-select" data-mat="TPU" data-density="1.21" data-cost="1.5">TPU Flexible</button>
+                        <button class="btn-select" data-mat="Resin" data-density="1.15" data-cost="1.8">Resin Precision</button>
+                    </div>
+                </div>
+
+                <!-- COLOR -->
+                <div class="option-group">
+                    <label>Paleta de cores</label>
+                    <div class="swatch-grid" id="colorSelector">
+                        <div class="color-swatch active" style="background: #38bdf8;" data-color="#38bdf8" data-name="Cyan"></div>
+                        <div class="color-swatch" style="background: #3b82f6;" data-color="#3b82f6" data-name="Electric Blue"></div>
+                        <div class="color-swatch" style="background: #22c55e;" data-color="#22c55e" data-name="Emerald"></div>
+                        <div class="color-swatch" style="background: #f59e0b;" data-color="#f59e0b" data-name="Amber"></div>
+                        <div class="color-swatch" style="background: #f8fafc;" data-color="#f8fafc" data-name="Pure White"></div>
+                        <div class="color-swatch" style="background: #334155;" data-color="#334155" data-name="Stealth Gray"></div>
+                    </div>
+                </div>
+
+                <!-- INFILL -->
+                <div class="option-group">
+                    <label>Densidate de impressão<span id="infillVal" style="color:var(--text-primary);">20%</span></label>
+                    <input type="range" class="range-slider" id="infillSlider" min="10" max="100" step="5" value="20">
+                </div>
+
+                <!-- LAYER HEIGHT -->
+                <div class="option-group">
+                    <label>Altura de camada</label>
+                    <div class="select-grid" id="layerSelector">
+                        <button class="btn-select" data-layer="0.05" data-speed="2.2">0.05mm (Ultra)</button>
+                        <button class="btn-select active" data-layer="0.12" data-speed="1.4">0.12mm (Fine)</button>
+                        <button class="btn-select" data-layer="0.20" data-speed="1.0">0.20mm (Standard)</button>
+                    </div>
+                </div>
+
+                <!-- SCALE -->
+                <div class="option-group">
+                    <label>Escala<span id="scaleVal" style="color:var(--text-primary);">100%</span></label>
+                    <input type="range" class="range-slider" id="scaleSlider" min="50" max="200" step="10" value="100">
+                </div>
+
+                <!-- FOOTER -->
+                <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                    <div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary);">Preço calculado</div>
+                        <div id="modalCalculatedPrice" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan);">$0.00</div>
+                    </div>
+                    <button class="btn btn-primary" id="addToQuoteBtn">Adicionar parte configurada</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CART / DRAWER -->
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+    <div class="cart-drawer" id="cartDrawer">
+        <div class="drawer-header">
+            <h3 style="font-weight: 800; display:flex; align-items:center; gap:0.5rem;">
+                <img src="cart-icon.png" alt="Cart" class="icon-img">
+                Pedido atual
+            </h3>
+            <button class="modal-close" id="closeDrawer" style="position:static;">
+                <img src="close-icon.png" alt="Close">
+            </button>
+        </div>
+
+        <div class="drawer-body" id="cartItemsContainer"></div>
+
+        <div class="drawer-footer">
+            <div class="cost-row">
+                <span>Total Items</span>
+                <span id="cartTotalItems">0</span>
+            </div>
+            <div class="cost-row">
+                <span>Est. Production Lead Time</span>
+                <span id="cartLeadTime">--</span>
+            </div>
+            <div class="cost-row total">
+                <span>Estimated Total</span>
+                <span id="cartSubtotal" style="color:var(--accent-cyan);">$0.00</span>
+            </div>
+            <button class="btn btn-primary" id="checkoutBtn" style="width:100%; margin-top:1rem;">Request Formal Quote</button>
+        </div>
+    </div>
+
+    <!-- CHECKOUT MODAL -->
+    <div class="modal-overlay" id="checkoutModal">
+        <div class="checkout-modal">
+            <h2 style="margin-bottom: 1rem; font-weight:800;">Submit Quote Request</h2>
+            <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:1.5rem;">
+                Insira suas informações de contato.
+            </p>
+            <form id="quoteForm">
+                <div class="form-group">
+                    <label>Full Name / Company</label>
+                    <input type="text" class="form-control" required placeholder="e.g. Acme Industries">
+                </div>
+                <div class="form-group">
+                    <label>Work Email</label>
+                    <input type="email" class="form-control" required placeholder="nome@dominio.com">
+                </div>
+                <div class="form-group">
+                    <label>Special Instructions / Notes</label>
+                    <textarea class="form-control" rows="3" placeholder="Post-processing, custom tolerances, etc."></textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
+                    <button type="button" class="btn btn-secondary" id="closeCheckout">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Fazer Pedido</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="script.js">
+    </script>
 </body>
+</html>
