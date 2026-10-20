@@ -1,67 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Euna3D · Impressão 3D sob encomenda e pronta entrega. Chaveiros, Pokémon, deck boxes, suportes para setup e decoração.">
+    <meta name="theme-color" content="#0d0b17">
+    <link rel="icon" type="image/svg+xml" href="img/logo-euna3d.svg">
     <link rel="stylesheet" href="style.css">
-    <title>3D Printing Catalog & Customizer</title>
+    <title>Euna3D · Impressão 3D</title>
 </head>
 <body>
 
     <!-- HEADER -->
-    <header>
+    <header class="site-header">
         <div class="container nav-wrapper">
-            <a href="#" class="brand-logo">
-                <img src="logo.png" alt="iE" class="icon-img">
-                Empresa<span>3D</span>
+            <a href="#" class="brand-logo" aria-label="Euna3D - início">
+                <img src="img/logo-euna3d.svg" alt="" width="40" height="40">
+                <span>Euna<span class="gradient-text">3D</span></span>
             </a>
 
             <div class="search-container">
-                <img src="search-icon.png" alt="iB" class="search-icon-img">
-                <input type="text" id="searchInput" class="search-input" placeholder="Buscar produtos e materiais...">
+                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+                <input type="search" id="searchInput" class="search-input" placeholder="O que você está procurando?" aria-label="Pesquisar produtos">
             </div>
 
-            <div class="nav-actions">
-                <button class="cart-trigger" id="cartTrigger">
-                    <img src="cart-icon.png" alt="Cart" class="icon-img">
-                    <span>Carrinho</span>
-                    <span class="cart-count" id="cartBadge">0</span>
-                </button>
-            </div>
+            <button class="cart-trigger" id="cartTrigger" aria-label="Abrir carrinho">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6 5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
+                <span class="cart-label">Carrinho</span>
+                <span class="cart-count" id="cartBadge">0</span>
+            </button>
         </div>
     </header>
 
+    <!-- HERO -->
+    <section class="hero">
+        <div class="container hero-inner">
+            <div class="hero-text">
+                <p class="eyebrow">Sua ideia, camada por camada</p>
+                <h1>Encontre sua próxima <span class="gradient-text">peça favorita</span>.</h1>
+                <p class="hero-sub">Impressão 3D feita peça por peça: chaveiros, Pokémon, deck boxes, suportes para o seu setup e decoração. Itens a pronta entrega e sob encomenda.</p>
+                <div class="hero-actions">
+                    <a href="#catalogo" class="btn btn-primary">Ver coleção</a>
+                    <a class="btn btn-secondary" id="heroWhatsapp" target="_blank" rel="noopener">Falar no WhatsApp</a>
+                </div>
+                <ul class="hero-stats" id="heroStats"></ul>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+                <img src="img/logo-euna3d.svg" alt="">
+            </div>
+        </div>
+    </section>
+
+    <!-- CATEGORY CHIPS -->
+    <nav class="container category-strip" id="categoryStrip" aria-label="Categorias"></nav>
+
     <!-- MAIN CONTENT -->
-    <div class="container main-layout">
+    <div class="container main-layout" id="catalogo">
         <!-- SIDEBAR FILTERS -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="filter-header">
-                <h3>
-                    <img src="filter-icon.png" alt="iF" class="icon-img">
-                    filtrar peças
-                </h3>
-                <button class="reset-btn" id="resetFilters">Reset All</button>
+                <h3>Filtrar peças</h3>
+                <button class="reset-btn" id="resetFilters">Limpar</button>
             </div>
 
-            <!-- CATEGORY FILTER -->
             <div class="filter-group">
-                <label class="group-title">Categoria</label>
+                <span class="group-title">Disponibilidade</span>
+                <div class="segmented" id="statusFilter" role="group" aria-label="Disponibilidade">
+                    <button type="button" data-status="todos" class="active">Todos</button>
+                    <button type="button" data-status="pronta">Pronta entrega</button>
+                    <button type="button" data-status="encomenda">Sob encomenda</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <span class="group-title">Categoria</span>
                 <div class="filter-options" id="categoryFilters"></div>
             </div>
 
-            <!-- MATERIAL FILTER -->
             <div class="filter-group">
-                <label class="group-title">Material disponível</label>
-                <div class="filter-options" id="materialFilters"></div>
-            </div>
-
-            <!-- PRICE RANGE -->
-            <div class="filter-group">
-                <label class="group-title">Preço inicial limite (R$)</label>
-                <input type="range" id="priceRange" class="range-slider" min="5" max="150" step="5" value="150">
+                <label class="group-title" for="priceRange">Preço máximo</label>
+                <input type="range" id="priceRange" class="range-slider" min="10" max="250" step="10" value="250">
                 <div class="price-display">
-                    <span>$5</span>
-                    <span id="priceRangeValue" style="color: var(--accent-cyan); font-weight:700;">R$ 150</span>
+                    <span>R$ 10</span>
+                    <span id="priceRangeValue" class="price-current">R$ 250</span>
                 </div>
             </div>
         </aside>
@@ -69,12 +90,15 @@
         <!-- CATALOG GRID -->
         <main>
             <div class="catalog-header">
-                <div class="catalog-results-count" id="resultsCount">Showing all items</div>
-                <select id="sortSelect" class="sort-select">
+                <div>
+                    <h2>Explore a coleção</h2>
+                    <p class="catalog-results-count" id="resultsCount" aria-live="polite"></p>
+                </div>
+                <select id="sortSelect" class="sort-select" aria-label="Ordenar por">
                     <option value="default">Relevância</option>
-                    <option value="price-asc">Custo crescente</option>
-                    <option value="price-desc">Custo decrescente</option>
-                    <option value="rating">Mais popular</option>
+                    <option value="price-asc">Menor preço</option>
+                    <option value="price-desc">Maior preço</option>
+                    <option value="name">Nome (A–Z)</option>
                 </select>
             </div>
 
@@ -82,91 +106,83 @@
         </main>
     </div>
 
-    <!-- CUSTOMIZER MODAL -->
-    <div class="modal-overlay" id="customizerModal">
-        <div class="customizer-modal">
-            <!-- LEFT PREVIEW -->
-            <div class="preview-pane">
-                <div class="preview-viewport">
-                    <img id="modalPreviewImg" src="placeholder-detail.jpg" alt="3D Product Customizer Preview">
-                </div>
-                <div class="preview-stats">
-                    <div class="stat-box">
-                        <div class="title">ETempo de impressão</div>
-                        <div class="value" id="calcTime">2h 15m</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="title">Peso</div>
-                        <div class="value" id="calcWeight">45g</div>
-                    </div>
+    <!-- HOW IT WORKS -->
+    <section class="container how" aria-labelledby="howTitle">
+        <h2 id="howTitle">Como funciona</h2>
+        <ol class="how-steps">
+            <li>
+                <span class="step-num">1</span>
+                <h4>Escolha suas peças</h4>
+                <p>Adicione ao carrinho itens a pronta entrega ou monte sua encomenda escolhendo a cor e a quantidade.</p>
+            </li>
+            <li>
+                <span class="step-num">2</span>
+                <h4>Envie o pedido pelo WhatsApp</h4>
+                <p>Seu carrinho vira uma mensagem pronta. A gente confirma valores, prazo e forma de pagamento com você.</p>
+            </li>
+            <li>
+                <span class="step-num">3</span>
+                <h4>Produção e entrega</h4>
+                <p>Peças sob encomenda são impressas camada por camada. Prazos e entrega são combinados com a loja.</p>
+            </li>
+        </ol>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <div class="footer-brand">
+                <img src="img/logo-euna3d.svg" alt="" width="36" height="36">
+                <div>
+                    <strong>Euna3D · Impressão 3D</strong>
+                    <p>Prazos e entrega são combinados com a loja.</p>
                 </div>
             </div>
+            <div class="footer-links">
+                <a id="footerWhatsapp" target="_blank" rel="noopener"></a>
+                <a id="footerInstagram" target="_blank" rel="noopener"></a>
+            </div>
+        </div>
+    </footer>
 
-            <!-- RIGHT CONFIGURATION OPTIONS -->
+    <!-- PRODUCT MODAL -->
+    <div class="modal-overlay" id="productModal" role="dialog" aria-modal="true" aria-labelledby="modalProductTitle">
+        <div class="product-modal">
+            <button class="modal-close" id="closeProduct" aria-label="Fechar">✕</button>
+
+            <div class="preview-pane">
+                <img id="modalPreviewImg" src="" alt="">
+            </div>
+
             <div class="config-pane">
-                <button class="modal-close" id="closeCustomizer">
-                    <img src="close-icon.png" alt="Close">
-                </button>
-
                 <div>
-                    <h2 id="modalProductTitle" style="font-size: 1.25rem; font-weight: 800;">Título de produto</h2>
-                    <p id="modalProductCategory" style="font-size: 0.8rem; color: var(--accent-cyan); text-transform: uppercase; font-weight:700;"></p>
+                    <p id="modalProductCategory" class="card-category"></p>
+                    <h2 id="modalProductTitle" class="modal-title"></h2>
+                    <span id="modalStatus" class="status-badge"></span>
                 </div>
 
-                <!-- MATERIAL -->
+                <p id="modalStatusInfo" class="modal-info"></p>
+
+                <div class="option-group" id="colorGroup">
+                    <span class="option-label">Cor desejada <em id="colorName"></em></span>
+                    <div class="swatch-grid" id="colorSelector"></div>
+                </div>
+
                 <div class="option-group">
-                    <label>Material</label>
-                    <div class="select-grid" id="materialSelector">
-                        <button class="btn-select active" data-mat="PLA" data-density="1.24" data-cost="1.0">PLA</button>
-                        <button class="btn-select" data-mat="PETG" data-density="1.27" data-cost="1.2">PETG</button>
-                        <button class="btn-select" data-mat="ABS" data-density="1.04" data-cost="1.15">ABS</button>
-                        <button class="btn-select" data-mat="TPU" data-density="1.21" data-cost="1.5">TPU Flexible</button>
-                        <button class="btn-select" data-mat="Resin" data-density="1.15" data-cost="1.8">Resin Precision</button>
+                    <span class="option-label">Quantidade</span>
+                    <div class="qty-control qty-lg">
+                        <button type="button" class="qty-btn" id="qtyMinus" aria-label="Diminuir">−</button>
+                        <span id="qtyValue">1</span>
+                        <button type="button" class="qty-btn" id="qtyPlus" aria-label="Aumentar">+</button>
                     </div>
                 </div>
 
-                <!-- COLOR -->
-                <div class="option-group">
-                    <label>Paleta de cores</label>
-                    <div class="swatch-grid" id="colorSelector">
-                        <div class="color-swatch active" style="background: #38bdf8;" data-color="#38bdf8" data-name="Cyan"></div>
-                        <div class="color-swatch" style="background: #3b82f6;" data-color="#3b82f6" data-name="Electric Blue"></div>
-                        <div class="color-swatch" style="background: #22c55e;" data-color="#22c55e" data-name="Emerald"></div>
-                        <div class="color-swatch" style="background: #f59e0b;" data-color="#f59e0b" data-name="Amber"></div>
-                        <div class="color-swatch" style="background: #f8fafc;" data-color="#f8fafc" data-name="Pure White"></div>
-                        <div class="color-swatch" style="background: #334155;" data-color="#334155" data-name="Stealth Gray"></div>
-                    </div>
-                </div>
-
-                <!-- INFILL -->
-                <div class="option-group">
-                    <label>Densidate de impressão<span id="infillVal" style="color:var(--text-primary);">20%</span></label>
-                    <input type="range" class="range-slider" id="infillSlider" min="10" max="100" step="5" value="20">
-                </div>
-
-                <!-- LAYER HEIGHT -->
-                <div class="option-group">
-                    <label>Altura de camada</label>
-                    <div class="select-grid" id="layerSelector">
-                        <button class="btn-select" data-layer="0.05" data-speed="2.2">0.05mm (Ultra)</button>
-                        <button class="btn-select active" data-layer="0.12" data-speed="1.4">0.12mm (Fine)</button>
-                        <button class="btn-select" data-layer="0.20" data-speed="1.0">0.20mm (Standard)</button>
-                    </div>
-                </div>
-
-                <!-- SCALE -->
-                <div class="option-group">
-                    <label>Escala<span id="scaleVal" style="color:var(--text-primary);">100%</span></label>
-                    <input type="range" class="range-slider" id="scaleSlider" min="50" max="200" step="10" value="100">
-                </div>
-
-                <!-- FOOTER -->
-                <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <div class="modal-footer">
                     <div>
-                        <div style="font-size:0.75rem; color:var(--text-secondary);">Preço calculado</div>
-                        <div id="modalCalculatedPrice" style="font-size: 1.5rem; font-weight: 800; color: var(--accent-cyan);">$0.00</div>
+                        <div class="muted-small">Total</div>
+                        <div id="modalPrice" class="modal-price"></div>
                     </div>
-                    <button class="btn btn-primary" id="addToQuoteBtn">Adicionar parte configurada</button>
+                    <button class="btn btn-primary" id="addToCartBtn">Adicionar ao carrinho</button>
                 </div>
             </div>
         </div>
@@ -174,68 +190,63 @@
 
     <!-- CART / DRAWER -->
     <div class="drawer-overlay" id="drawerOverlay"></div>
-    <div class="cart-drawer" id="cartDrawer">
+    <aside class="cart-drawer" id="cartDrawer" aria-label="Carrinho">
         <div class="drawer-header">
-            <h3 style="font-weight: 800; display:flex; align-items:center; gap:0.5rem;">
-                <img src="cart-icon.png" alt="Cart" class="icon-img">
-                Pedido atual
-            </h3>
-            <button class="modal-close" id="closeDrawer" style="position:static;">
-                <img src="close-icon.png" alt="Close">
-            </button>
+            <h3>Seu pedido</h3>
+            <button class="modal-close" id="closeDrawer" aria-label="Fechar carrinho">✕</button>
         </div>
 
         <div class="drawer-body" id="cartItemsContainer"></div>
 
         <div class="drawer-footer">
             <div class="cost-row">
-                <span>Total Items</span>
+                <span>Itens</span>
                 <span id="cartTotalItems">0</span>
             </div>
             <div class="cost-row">
-                <span>Est. Production Lead Time</span>
+                <span>Prazo</span>
                 <span id="cartLeadTime">--</span>
             </div>
             <div class="cost-row total">
-                <span>Estimated Total</span>
-                <span id="cartSubtotal" style="color:var(--accent-cyan);">$0.00</span>
+                <span>Total estimado</span>
+                <span id="cartSubtotal" class="accent">R$ 0,00</span>
             </div>
-            <button class="btn btn-primary" id="checkoutBtn" style="width:100%; margin-top:1rem;">Request Formal Quote</button>
+            <button class="btn btn-primary btn-block" id="checkoutBtn">Finalizar pedido</button>
         </div>
-    </div>
+    </aside>
 
     <!-- CHECKOUT MODAL -->
-    <div class="modal-overlay" id="checkoutModal">
+    <div class="modal-overlay" id="checkoutModal" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
         <div class="checkout-modal">
-            <h2 style="margin-bottom: 1rem; font-weight:800;">Submit Quote Request</h2>
-            <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:1.5rem;">
-                Insira suas informações de contato.
-            </p>
-            <form id="quoteForm">
+            <h2 id="checkoutTitle">Enviar pedido pelo WhatsApp</h2>
+            <p class="muted">Preencha seus dados. Vamos abrir o WhatsApp da Euna3D com o pedido já escrito para você só enviar.</p>
+            <form id="orderForm">
                 <div class="form-group">
-                    <label>Full Name / Company</label>
-                    <input type="text" class="form-control" required placeholder="e.g. Acme Industries">
+                    <label for="customerName">Seu nome</label>
+                    <input type="text" id="customerName" class="form-control" required placeholder="Ex.: Maria Souza">
                 </div>
                 <div class="form-group">
-                    <label>Work Email</label>
-                    <input type="email" class="form-control" required placeholder="nome@dominio.com">
+                    <label for="deliveryMode">Recebimento</label>
+                    <select id="deliveryMode" class="form-control">
+                        <option value="Retirada">Retirada (combinar local)</option>
+                        <option value="Entrega">Entrega (combinar frete)</option>
+                    </select>
                 </div>
                 <div class="form-group">
-                    <label>Special Instructions / Notes</label>
-                    <textarea class="form-control" rows="3" placeholder="Post-processing, custom tolerances, etc."></textarea>
+                    <label for="orderNotes">Observações</label>
+                    <textarea id="orderNotes" class="form-control" rows="3" placeholder="Nome para personalizar, tamanho, data que precisa..."></textarea>
                 </div>
-                <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
-                    <button type="button" class="btn btn-secondary" id="closeCheckout">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Fazer Pedido</button>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="closeCheckout">Voltar</button>
+                    <button type="submit" class="btn btn-whatsapp">Enviar no WhatsApp</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- TOAST CONTAINER -->
-    <div class="toast-container" id="toastContainer"></div>
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-    <script src="script.js">
-    </script>
+    <script src="products.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

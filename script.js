@@ -1,300 +1,425 @@
-// PRODUCTS DATABASE WITH IMG SOURCES FOR USER REPLACEMENT
-const PRODUCTS = [
-	{
-		id: 'p1',
-		title: 'High-Torque Planetary Gear Set',
-		category: 'Functional Parts',
-		basePrice: 34.50,
-		rating: 4.9,
-		baseWeight: 65,
-		basePrintTimeHours: 3.5,
-		materials: ['PLA', 'PETG', 'ABS'],
-		description: 'Precision mechanical gear set with 5:1 reduction ratio for robotics.',
-		imageSrc: 'gear-set.jpg'
-	},
-	{
-		id: 'p2',
-		title: 'Cyberpunk Visor Prop',
-		category: 'Props',
-		basePrice: 110.00,
-		rating: 4.8,
-		baseWeight: 380,
-		basePrintTimeHours: 14.0,
-		materials: ['PLA', 'PETG'],
-		description: 'Wearable futuristic prop visor with embedded mounting clips.',
-		imageSrc: 'cyber-visor.jpg'
-	},
-	{
-		id: 'p3',
-		title: 'Modular Desk Organizer Block',
-		category: 'Decor',
-		basePrice: 12.99,
-		rating: 4.6,
-		baseWeight: 30,
-		basePrintTimeHours: 1.2,
-		materials: ['PLA', 'PETG', 'TPU'],
-		description: 'Sleek geometric cable and pen holder with weighted cavities.',
-		imageSrc: 'desk-organizer.jpg'
-	},
-	{
-		id: 'p4',
-		title: 'Dragon Miniature Figurine',
-		category: 'Miniatures',
-		basePrice: 24.00,
-		rating: 5.0,
-		baseWeight: 25,
-		basePrintTimeHours: 4.0,
-		materials: ['Resin', 'PLA'],
-		description: 'Ultra-detailed high precision tabletop miniature figurine.',
-		imageSrc: 'dragon-mini.jpg'
-	},
-	{
-		id: 'p5',
-		title: 'NEMA 17 Stepper Mount Bracket',
-		category: 'Functional Parts',
-		basePrice: 8.50,
-		rating: 4.7,
-		baseWeight: 40,
-		basePrintTimeHours: 1.8,
-		materials: ['PETG', 'ABS'],
-		description: 'Heavy duty motor mounting bracket for CNC machines and printers.',
-		imageSrc: 'motor-bracket.jpg'
-	},
-	{
-		id: 'p6',
-		title: 'FPV Drone Structural Arm',
-		category: 'Prototypes',
-		basePrice: 18.00,
-		rating: 4.5,
-		baseWeight: 35,
-		basePrintTimeHours: 2.1,
-		materials: ['PETG', 'ABS', 'TPU'],
-		description: 'Lightweight high-impact motor arm replacement for quadcopters.',
-		imageSrc: 'drone-arm.jpg'
-	}
-];
+// PRODUCTS, CATEGORIES, STORE e FILAMENT_COLORS vêm de products.js
+
+const CART_KEY = 'euna3d-cart';
+const MAX_PRICE = 250;
+
+const STATUS_LABEL = {
+	pronta: 'Pronta entrega',
+	encomenda: 'Sob encomenda'
+};
 
 // LOCAL STATE
 let state = {
 	searchQuery: '',
 	selectedCategories: [],
-	selectedMaterials: [],
-	maxPrice: 150,
+	status: 'todos',
+	maxPrice: MAX_PRICE,
 	sortBy: 'default',
-	cart: [],
-	activeCustomizer: {
+	cart: loadCart(),
+	activeProduct: {
 		product: null,
-		material: 'PLA',
-		materialCostMultiplier: 1.0,
-		materialDensity: 1.24,
-		colorHex: '#38bdf8',
-		colorName: 'Cyan',
-		infill: 20,
-		layerHeight: 0.12,
-		speedMultiplier: 1.4,
-		scale: 100
+		color: FILAMENT_COLORS[0].name,
+		quantity: 1
 	}
 };
 
 // DOM ELEMENTS
-const catalogGrid = document.getElementById('catalogGrid');
-const searchInput = document.getElementById('searchInput');
-const categoryFiltersContainer = document.getElementById('categoryFilters');
-const materialFiltersContainer = document.getElementById('materialFilters');
-const priceRange = document.getElementById('priceRange');
-const priceRangeValue = document.getElementById('priceRangeValue');
-const resetFiltersBtn = document.getElementById('resetFilters');
-const resultsCount = document.getElementById('resultsCount');
-const sortSelect = document.getElementById('sortSelect');
+const $ = id => document.getElementById(id);
 
-// Modal Elements
-const customizerModal = document.getElementById('customizerModal');
-const closeCustomizer = document.getElementById('closeCustomizer');
-const modalPreviewImg = document.getElementById('modalPreviewImg');
-const modalProductTitle = document.getElementById('modalProductTitle');
-const modalProductCategory = document.getElementById('modalProductCategory');
-const calcTime = document.getElementById('calcTime');
-const calcWeight = document.getElementById('calcWeight');
-const infillSlider = document.getElementById('infillSlider');
-const infillVal = document.getElementById('infillVal');
-const scaleSlider = document.getElementById('scaleSlider');
-const scaleVal = document.getElementById('scaleVal');
-const modalCalculatedPrice = document.getElementById('modalCalculatedPrice');
-const addToQuoteBtn = document.getElementById('addToQuoteBtn');
+const catalogGrid = $('catalogGrid');
+const searchInput = $('searchInput');
+const categoryFiltersContainer = $('categoryFilters');
+const categoryStrip = $('categoryStrip');
+const statusFilter = $('statusFilter');
+const priceRange = $('priceRange');
+const priceRangeValue = $('priceRangeValue');
+const resetFiltersBtn = $('resetFilters');
+const resultsCount = $('resultsCount');
+const sortSelect = $('sortSelect');
 
-// Drawer Elements
-const cartTrigger = document.getElementById('cartTrigger');
-const cartBadge = document.getElementById('cartBadge');
-const cartDrawer = document.getElementById('cartDrawer');
-const drawerOverlay = document.getElementById('drawerOverlay');
-const closeDrawer = document.getElementById('closeDrawer');
-const cartItemsContainer = document.getElementById('cartItemsContainer');
-const cartTotalItems = document.getElementById('cartTotalItems');
-const cartLeadTime = document.getElementById('cartLeadTime');
-const cartSubtotal = document.getElementById('cartSubtotal');
-const checkoutBtn = document.getElementById('checkoutBtn');
+// Product Modal
+const productModal = $('productModal');
+const modalPreviewImg = $('modalPreviewImg');
+const modalProductTitle = $('modalProductTitle');
+const modalProductCategory = $('modalProductCategory');
+const modalStatus = $('modalStatus');
+const modalStatusInfo = $('modalStatusInfo');
+const colorGroup = $('colorGroup');
+const colorSelector = $('colorSelector');
+const colorName = $('colorName');
+const qtyValue = $('qtyValue');
+const modalPrice = $('modalPrice');
+const addToCartBtn = $('addToCartBtn');
 
-// Checkout Modal
-const checkoutModal = document.getElementById('checkoutModal');
-const closeCheckout = document.getElementById('closeCheckout');
-const quoteForm = document.getElementById('quoteForm');
+// Drawer
+const cartBadge = $('cartBadge');
+const cartDrawer = $('cartDrawer');
+const drawerOverlay = $('drawerOverlay');
+const cartItemsContainer = $('cartItemsContainer');
+const cartTotalItems = $('cartTotalItems');
+const cartLeadTime = $('cartLeadTime');
+const cartSubtotal = $('cartSubtotal');
+
+// Checkout
+const checkoutModal = $('checkoutModal');
+const orderForm = $('orderForm');
 
 window.addEventListener('DOMContentLoaded', () => {
+	initStoreInfo();
 	initFilters();
 	renderCatalog();
+	updateCartUI();
 	setupEventListeners();
 });
 
+// HELPERS
+function formatBRL(value) {
+	return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function normalize(text) {
+	return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+function whatsappLink(message) {
+	return `https://wa.me/${STORE.whatsapp}?text=${encodeURIComponent(message)}`;
+}
+
+function loadCart() {
+	try {
+		const saved = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+		// descarta itens que não existem mais no catálogo
+		return saved.filter(item => PRODUCTS.some(p => p.id === item.productId));
+	} catch {
+		return [];
+	}
+}
+
+function saveCart() {
+	try {
+		localStorage.setItem(CART_KEY, JSON.stringify(state.cart));
+	} catch {
+		// navegação privada ou armazenamento bloqueado: o carrinho segue só na memória
+	}
+}
+
+function getProduct(id) {
+	return PRODUCTS.find(p => p.id === id);
+}
+
+// INIT
+function initStoreInfo() {
+	const hello = `Olá! Vim pela vitrine da ${STORE.name} e queria tirar uma dúvida.`;
+	$('heroWhatsapp').href = whatsappLink(hello);
+
+	const footerWhatsapp = $('footerWhatsapp');
+	footerWhatsapp.href = whatsappLink(hello);
+	footerWhatsapp.textContent = `WhatsApp ${STORE.whatsappLabel}`;
+
+	const footerInstagram = $('footerInstagram');
+	if (STORE.instagram) {
+		footerInstagram.href = `https://www.instagram.com/${STORE.instagram}/`;
+		footerInstagram.textContent = `@${STORE.instagram}`;
+	} else {
+		footerInstagram.hidden = true;
+	}
+
+	const ready = PRODUCTS.filter(p => p.status === 'pronta').length;
+	const minPrice = Math.min(...PRODUCTS.map(p => p.price));
+	$('heroStats').innerHTML = `
+		<li><strong>${PRODUCTS.length}</strong> peças no catálogo</li>
+		<li><strong>${ready}</strong> a pronta entrega</li>
+		<li>a partir de <strong>${formatBRL(minPrice)}</strong></li>
+	`;
+}
+
 function initFilters() {
-	const categories = [...new Set(PRODUCTS.map(p => p.category))];
-	const materials = [...new Set(PRODUCTS.flatMap(p => p.materials))];
+	const counts = {};
+	PRODUCTS.forEach(p => p.categories.forEach(cat => {
+		counts[cat] = (counts[cat] || 0) + 1;
+	}));
+
+	const categories = Object.keys(CATEGORIES).filter(cat => counts[cat]);
 
 	categoryFiltersContainer.innerHTML = categories.map(cat => `
 		<label class="checkbox-label">
 			<input type="checkbox" value="${cat}" class="cat-checkbox">
-			${cat}
+			<span>${CATEGORIES[cat]} ${cat}</span>
+			<span class="count">${counts[cat]}</span>
 		</label>
 	`).join('');
 
-	materialFiltersContainer.innerHTML = materials.map(mat => `
-		<label class="checkbox-label">
-			<input type="checkbox" value="${mat}" class="mat-checkbox">
-			${mat}
-		</label>
-	`).join('');
+	categoryStrip.innerHTML = `
+		<button type="button" class="chip active" data-cat="">Tudo</button>
+		${categories.map(cat => `<button type="button" class="chip" data-cat="${cat}">${CATEGORIES[cat]} ${cat}</button>`).join('')}
+	`;
 }
 
-function renderCatalog() {
+// CATALOG
+function getFilteredProducts() {
+	const query = normalize(state.searchQuery);
+
 	let filtered = PRODUCTS.filter(product => {
-		const matchesSearch = product.title.toLowerCase().includes(state.searchQuery) ||
-							  product.description.toLowerCase().includes(state.searchQuery) ||
-							  product.category.toLowerCase().includes(state.searchQuery);
-		
-		const matchesCategory = state.selectedCategories.length === 0 || 
-								state.selectedCategories.includes(product.category);
+		const matchesSearch = !query ||
+			normalize(product.title).includes(query) ||
+			product.categories.some(cat => normalize(cat).includes(query));
 
-		const matchesMaterial = state.selectedMaterials.length === 0 || 
-								product.materials.some(m => state.selectedMaterials.includes(m));
+		const matchesCategory = state.selectedCategories.length === 0 ||
+			product.categories.some(cat => state.selectedCategories.includes(cat));
 
-		const matchesPrice = product.basePrice <= state.maxPrice;
+		const matchesStatus = state.status === 'todos' || product.status === state.status;
+		const matchesPrice = product.price <= state.maxPrice;
 
-		return matchesSearch && matchesCategory && matchesMaterial && matchesPrice;
+		return matchesSearch && matchesCategory && matchesStatus && matchesPrice;
 	});
 
 	if (state.sortBy === 'price-asc') {
-		filtered.sort((a, b) => a.basePrice - b.basePrice);
+		filtered.sort((a, b) => a.price - b.price);
 	} else if (state.sortBy === 'price-desc') {
-		filtered.sort((a, b) => b.basePrice - a.basePrice);
-	} else if (state.sortBy === 'rating') {
-		filtered.sort((a, b) => b.rating - a.rating);
+		filtered.sort((a, b) => b.price - a.price);
+	} else if (state.sortBy === 'name') {
+		filtered.sort((a, b) => a.title.localeCompare(b.title, 'pt-BR'));
 	}
 
-	resultsCount.textContent = `Showing ${filtered.length} of ${PRODUCTS.length} parts`;
+	return filtered;
+}
+
+function renderCatalog() {
+	const filtered = getFilteredProducts();
+
+	resultsCount.textContent = `${filtered.length} de ${PRODUCTS.length} produtos`;
 
 	if (filtered.length === 0) {
 		catalogGrid.innerHTML = `
-			<div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
-				<h3>No matching items found</h3>
-				<p style="font-size:0.875rem;">Adjust your filter selection to view products.</p>
+			<div class="empty-state">
+				<h3>Nenhuma peça encontrada</h3>
+				<p>Ajuste os filtros ou <a href="${whatsappLink('Olá! Não encontrei o que procurava na vitrine. Vocês fazem peças personalizadas?')}" target="_blank" rel="noopener">peça um orçamento personalizado</a>.</p>
 			</div>
 		`;
 		return;
 	}
 
 	catalogGrid.innerHTML = filtered.map(product => `
-		<div class="product-card">
-			<div class="card-preview">
-				<img src="${product.imageSrc}" alt="${product.title}" class="product-img">
-			</div>
+		<article class="product-card">
+			<button type="button" class="card-preview" data-open="${product.id}" aria-label="Ver detalhes de ${product.title}">
+				<img src="${product.image}" alt="${product.title}" class="product-img" loading="lazy">
+				<span class="status-badge ${product.status}">${STATUS_LABEL[product.status]}</span>
+			</button>
 			<div class="card-body">
-				<div class="card-category">${product.category}</div>
+				<div class="card-category">${product.categories.join(' · ')}</div>
 				<h4 class="card-title">${product.title}</h4>
-				<div class="card-specs">
-					${product.materials.map(m => `<span class="spec-pill">${m}</span>`).join('')}
-					<span class="spec-pill" style="color:var(--accent-amber);">★ ${product.rating}</span>
-				</div>
-				<p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">${product.description}</p>
 				<div class="card-footer">
-					<span class="price-val">R$${product.basePrice.toFixed(2)}</span>
-					<button class="btn btn-outline" onclick="openCustomizer('${product.id}')">Personalisar</button>
+					<span class="price-val">${formatBRL(product.price)}</span>
+					<button type="button" class="btn btn-outline btn-sm" data-open="${product.id}">
+						${product.status === 'pronta' ? 'Adicionar' : 'Encomendar'}
+					</button>
 				</div>
 			</div>
-		</div>
+		</article>
 	`).join('');
 }
 
-function openCustomizer(productId) {
-	const product = PRODUCTS.find(p => p.id === productId);
+function syncCategoryUI() {
+	document.querySelectorAll('.cat-checkbox').forEach(cb => {
+		cb.checked = state.selectedCategories.includes(cb.value);
+	});
+	document.querySelectorAll('#categoryStrip .chip').forEach(chip => {
+		const cat = chip.dataset.cat;
+		const active = cat === '' ? state.selectedCategories.length === 0 :
+			state.selectedCategories.length === 1 && state.selectedCategories[0] === cat;
+		chip.classList.toggle('active', active);
+	});
+}
+
+// PRODUCT MODAL
+function openProduct(productId) {
+	const product = getProduct(productId);
 	if (!product) return;
 
-	state.activeCustomizer.product = product;
-	state.activeCustomizer.scale = 100;
-	state.activeCustomizer.infill = 20;
+	const a = state.activeProduct;
+	a.product = product;
+	a.quantity = 1;
+	a.color = FILAMENT_COLORS[0].name;
 
 	modalProductTitle.textContent = product.title;
-	modalProductCategory.textContent = product.category;
-	modalPreviewImg.src = product.imageSrc;
-	modalPreviewImg.onerror = function() {
-		this.onerror = null;
-		this.src = ``;
-	};
+	modalProductCategory.textContent = product.categories.map(cat => `${CATEGORIES[cat]} ${cat}`).join(' · ');
+	modalPreviewImg.src = product.image;
+	modalPreviewImg.alt = product.title;
 
-	infillSlider.value = 20;
-	infillVal.textContent = '20%';
-	scaleSlider.value = 100;
-	scaleVal.textContent = '100%';
+	modalStatus.textContent = STATUS_LABEL[product.status];
+	modalStatus.className = `status-badge ${product.status}`;
 
-	updateCustomizerCalculations();
-	customizerModal.classList.add('active');
+	const isOrder = product.status === 'encomenda';
+	modalStatusInfo.textContent = isOrder
+		? 'Peça produzida sob encomenda em impressão 3D (FDM). Escolha a cor de preferência — prazo e disponibilidade do filamento são confirmados pela loja.'
+		: 'Peça pronta para envio ou retirada. A cor é a da foto.';
+	colorGroup.hidden = !isOrder;
+	addToCartBtn.textContent = isOrder ? 'Adicionar encomenda' : 'Adicionar ao carrinho';
+
+	colorSelector.innerHTML = FILAMENT_COLORS.map((c, i) => `
+		<button type="button" class="color-swatch ${i === 0 ? 'active' : ''}" style="background: ${c.hex};" data-name="${c.name}" title="${c.name}" aria-label="${c.name}"></button>
+	`).join('');
+
+	updateModal();
+	productModal.classList.add('active');
 }
 
-function updateCustomizerCalculations() {
-	const c = state.activeCustomizer;
-	if (!c.product) return;
-
-	const scaleFactor = c.scale / 100;
-	modalPreviewImg.style.transform = `scale(${Math.min(1.2, Math.max(0.8, scaleFactor))})`;
-
-	const scaleMultiplier = Math.pow(c.scale / 100, 3);
-	const infillFactor = 0.6 + (c.infill / 100) * 0.4;
-	const estimatedWeight = Math.round(c.product.baseWeight * scaleMultiplier * infillFactor * (c.materialDensity / 1.24));
-	const estimatedTimeHours = (c.product.basePrintTimeHours * scaleMultiplier * c.speedMultiplier * (0.8 + (c.infill / 100) * 0.2)).toFixed(1);
-
-	const materialCost = estimatedWeight * 0.08 * c.materialCostMultiplier;
-	const machineTimeCost = estimatedTimeHours * 3.50;
-	const finalPrice = Math.max(c.product.basePrice * 0.5, c.product.basePrice * scaleMultiplier * 0.4 + materialCost + machineTimeCost);
-
-	calcWeight.textContent = `${estimatedWeight}g`;
-	const hours = Math.floor(estimatedTimeHours);
-	const mins = Math.round((estimatedTimeHours - hours) * 60);
-	calcTime.textContent = `${hours}h ${mins}m`;
-
-	modalCalculatedPrice.textContent = `R$${finalPrice.toFixed(2)}`;
-	
-	c.computedPrice = finalPrice;
-	c.computedWeight = estimatedWeight;
-	c.computedTime = `${hours}h ${mins}m`;
+function updateModal() {
+	const a = state.activeProduct;
+	qtyValue.textContent = a.quantity;
+	colorName.textContent = `· ${a.color}`;
+	modalPrice.textContent = formatBRL(a.product.price * a.quantity);
 }
 
+function closeModal(modal) {
+	modal.classList.remove('active');
+}
+
+// CART
+function addToCart() {
+	const a = state.activeProduct;
+	const color = a.product.status === 'encomenda' ? a.color : null;
+	const existing = state.cart.find(i => i.productId === a.product.id && i.color === color);
+
+	if (existing) {
+		existing.quantity += a.quantity;
+	} else {
+		state.cart.push({
+			cartItemId: 'item_' + Date.now(),
+			productId: a.product.id,
+			color,
+			quantity: a.quantity
+		});
+	}
+
+	saveCart();
+	updateCartUI();
+	closeModal(productModal);
+	showToast(`${a.product.title} adicionado ao carrinho`);
+}
+
+function updateCartUI() {
+	const totalCount = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+	cartBadge.textContent = totalCount;
+
+	if (state.cart.length === 0) {
+		cartItemsContainer.innerHTML = `
+			<div class="empty-state">
+				<p>Seu carrinho está vazio.</p>
+				<p class="muted-small">Escolha uma peça na coleção para começar.</p>
+			</div>
+		`;
+		cartTotalItems.textContent = '0';
+		cartLeadTime.textContent = '--';
+		cartSubtotal.textContent = formatBRL(0);
+		return;
+	}
+
+	let subtotal = 0;
+
+	cartItemsContainer.innerHTML = state.cart.map(item => {
+		const product = getProduct(item.productId);
+		const itemTotal = product.price * item.quantity;
+		subtotal += itemTotal;
+
+		return `
+			<div class="cart-item">
+				<div class="cart-item-preview">
+					<img src="${product.image}" alt="${product.title}">
+				</div>
+				<div class="cart-item-details">
+					<div class="cart-item-title">${product.title}</div>
+					<div class="cart-item-meta">${STATUS_LABEL[product.status]}${item.color ? ` • ${item.color}` : ''}</div>
+					<div class="cart-item-price">${formatBRL(itemTotal)}</div>
+					<div class="qty-control">
+						<button class="qty-btn" data-qty="-1" data-item="${item.cartItemId}" aria-label="Diminuir">−</button>
+						<span>${item.quantity}</span>
+						<button class="qty-btn" data-qty="1" data-item="${item.cartItemId}" aria-label="Aumentar">+</button>
+					</div>
+				</div>
+				<button class="remove-btn" data-remove="${item.cartItemId}" aria-label="Remover ${product.title}">✕</button>
+			</div>
+		`;
+	}).join('');
+
+	const hasOrder = state.cart.some(item => getProduct(item.productId).status === 'encomenda');
+	cartTotalItems.textContent = totalCount;
+	cartLeadTime.textContent = hasOrder ? 'A combinar (encomenda)' : 'Pronta entrega';
+	cartSubtotal.textContent = formatBRL(subtotal);
+}
+
+function changeQty(cartItemId, delta) {
+	const item = state.cart.find(i => i.cartItemId === cartItemId);
+	if (!item) return;
+
+	item.quantity += delta;
+	if (item.quantity <= 0) {
+		state.cart = state.cart.filter(i => i.cartItemId !== cartItemId);
+	}
+	saveCart();
+	updateCartUI();
+}
+
+function removeItem(cartItemId) {
+	state.cart = state.cart.filter(i => i.cartItemId !== cartItemId);
+	saveCart();
+	updateCartUI();
+	showToast('Item removido');
+}
+
+function buildOrderMessage(name, delivery, notes) {
+	let total = 0;
+	const lines = state.cart.map(item => {
+		const product = getProduct(item.productId);
+		const itemTotal = product.price * item.quantity;
+		total += itemTotal;
+		const details = [STATUS_LABEL[product.status], item.color].filter(Boolean).join(', ');
+		return `• ${item.quantity}x ${product.title} (${details}) — ${formatBRL(itemTotal)}`;
+	});
+
+	return [
+		`Olá, ${STORE.name}! Meu nome é ${name} e gostaria de fazer este pedido:`,
+		'',
+		...lines,
+		'',
+		`Total estimado: ${formatBRL(total)}`,
+		`Recebimento: ${delivery}`,
+		notes ? `Observações: ${notes}` : null
+	].filter(line => line !== null).join('\n');
+}
+
+// EVENTS
 function setupEventListeners() {
 	searchInput.addEventListener('input', (e) => {
-		state.searchQuery = e.target.value.toLowerCase().trim();
+		state.searchQuery = e.target.value.trim();
 		renderCatalog();
 	});
 
 	categoryFiltersContainer.addEventListener('change', () => {
 		state.selectedCategories = Array.from(document.querySelectorAll('.cat-checkbox:checked')).map(cb => cb.value);
+		syncCategoryUI();
 		renderCatalog();
 	});
 
-	materialFiltersContainer.addEventListener('change', () => {
-		state.selectedMaterials = Array.from(document.querySelectorAll('.mat-checkbox:checked')).map(cb => cb.value);
+	categoryStrip.addEventListener('click', (e) => {
+		const chip = e.target.closest('.chip');
+		if (!chip) return;
+		state.selectedCategories = chip.dataset.cat ? [chip.dataset.cat] : [];
+		syncCategoryUI();
+		renderCatalog();
+	});
+
+	statusFilter.addEventListener('click', (e) => {
+		const btn = e.target.closest('button');
+		if (!btn) return;
+		statusFilter.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+		state.status = btn.dataset.status;
 		renderCatalog();
 	});
 
 	priceRange.addEventListener('input', (e) => {
 		state.maxPrice = parseFloat(e.target.value);
-		priceRangeValue.textContent = `R$${state.maxPrice}`;
+		priceRangeValue.textContent = `R$ ${state.maxPrice}`;
 		renderCatalog();
 	});
 
@@ -306,193 +431,119 @@ function setupEventListeners() {
 	resetFiltersBtn.addEventListener('click', () => {
 		state.searchQuery = '';
 		state.selectedCategories = [];
-		state.selectedMaterials = [];
-		state.maxPrice = 150;
+		state.status = 'todos';
+		state.maxPrice = MAX_PRICE;
 		state.sortBy = 'default';
 
 		searchInput.value = '';
-		priceRange.value = 150;
-		priceRangeValue.textContent = '$150';
+		priceRange.value = MAX_PRICE;
+		priceRangeValue.textContent = `R$ ${MAX_PRICE}`;
 		sortSelect.value = 'default';
+		statusFilter.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.status === 'todos'));
 
-		document.querySelectorAll('.cat-checkbox, .mat-checkbox').forEach(cb => cb.checked = false);
-
+		syncCategoryUI();
 		renderCatalog();
-		showToast('Filters reset');
+		showToast('Filtros limpos');
 	});
 
-	document.getElementById('materialSelector').addEventListener('click', (e) => {
-		if (e.target.classList.contains('btn-select')) {
-			document.querySelectorAll('#materialSelector .btn-select').forEach(b => b.classList.remove('active'));
-			e.target.classList.add('active');
-			state.activeCustomizer.material = e.target.dataset.mat;
-			state.activeCustomizer.materialCostMultiplier = parseFloat(e.target.dataset.cost);
-			state.activeCustomizer.materialDensity = parseFloat(e.target.dataset.density);
-			updateCustomizerCalculations();
-		}
+	catalogGrid.addEventListener('click', (e) => {
+		const trigger = e.target.closest('[data-open]');
+		if (trigger) openProduct(trigger.dataset.open);
 	});
 
-	document.getElementById('colorSelector').addEventListener('click', (e) => {
-		if (e.target.classList.contains('color-swatch')) {
-			document.querySelectorAll('#colorSelector .color-swatch').forEach(s => s.classList.remove('active'));
-			e.target.classList.add('active');
-			state.activeCustomizer.colorHex = e.target.dataset.color;
-			state.activeCustomizer.colorName = e.target.dataset.name;
-			updateCustomizerCalculations();
-		}
+	// Product modal
+	colorSelector.addEventListener('click', (e) => {
+		const swatch = e.target.closest('.color-swatch');
+		if (!swatch) return;
+		colorSelector.querySelectorAll('.color-swatch').forEach(s => s.classList.toggle('active', s === swatch));
+		state.activeProduct.color = swatch.dataset.name;
+		updateModal();
 	});
 
-	infillSlider.addEventListener('input', (e) => {
-		state.activeCustomizer.infill = parseInt(e.target.value);
-		infillVal.textContent = `${e.target.value}%`;
-		updateCustomizerCalculations();
+	$('qtyMinus').addEventListener('click', () => {
+		state.activeProduct.quantity = Math.max(1, state.activeProduct.quantity - 1);
+		updateModal();
 	});
 
-	document.getElementById('layerSelector').addEventListener('click', (e) => {
-		if (e.target.classList.contains('btn-select')) {
-			document.querySelectorAll('#layerSelector .btn-select').forEach(b => b.classList.remove('active'));
-			e.target.classList.add('active');
-			state.activeCustomizer.layerHeight = parseFloat(e.target.dataset.layer);
-			state.activeCustomizer.speedMultiplier = parseFloat(e.target.dataset.speed);
-			updateCustomizerCalculations();
-		}
+	$('qtyPlus').addEventListener('click', () => {
+		state.activeProduct.quantity += 1;
+		updateModal();
 	});
 
-	scaleSlider.addEventListener('input', (e) => {
-		state.activeCustomizer.scale = parseInt(e.target.value);
-		scaleVal.textContent = `${e.target.value}%`;
-		updateCustomizerCalculations();
-	});
+	addToCartBtn.addEventListener('click', addToCart);
+	$('closeProduct').addEventListener('click', () => closeModal(productModal));
 
-	closeCustomizer.addEventListener('click', () => {
-		customizerModal.classList.remove('active');
-	});
-
-	addToQuoteBtn.addEventListener('click', () => {
-		const c = state.activeCustomizer;
-		const cartItem = {
-			cartItemId: 'item_' + Date.now(),
-			product: c.product,
-			material: c.material,
-			colorName: c.colorName,
-			infill: c.infill,
-			layerHeight: c.layerHeight,
-			scale: c.scale,
-			unitPrice: c.computedPrice,
-			quantity: 1
-		};
-
-		state.cart.push(cartItem);
-		updateCartUI();
-		customizerModal.classList.remove('active');
-		showToast(`Added ${c.product.title} to quote`);
-	});
-
-	cartTrigger.addEventListener('click', () => {
+	// Drawer
+	const openDrawer = () => {
 		cartDrawer.classList.add('active');
 		drawerOverlay.classList.add('active');
-	});
-
-	const closeDrawerFn = () => {
+	};
+	const closeDrawer = () => {
 		cartDrawer.classList.remove('active');
 		drawerOverlay.classList.remove('active');
 	};
 
-	closeDrawer.addEventListener('click', closeDrawerFn);
-	drawerOverlay.addEventListener('click', closeDrawerFn);
+	$('cartTrigger').addEventListener('click', openDrawer);
+	$('closeDrawer').addEventListener('click', closeDrawer);
+	drawerOverlay.addEventListener('click', closeDrawer);
 
-	checkoutBtn.addEventListener('click', () => {
+	cartItemsContainer.addEventListener('click', (e) => {
+		const qtyBtn = e.target.closest('[data-qty]');
+		if (qtyBtn) changeQty(qtyBtn.dataset.item, parseInt(qtyBtn.dataset.qty));
+		const removeBtn = e.target.closest('[data-remove]');
+		if (removeBtn) removeItem(removeBtn.dataset.remove);
+	});
+
+	// Checkout
+	$('checkoutBtn').addEventListener('click', () => {
 		if (state.cart.length === 0) {
-			showToast('Quote cart is empty');
+			showToast('Seu carrinho está vazio');
 			return;
 		}
-		closeDrawerFn();
+		closeDrawer();
 		checkoutModal.classList.add('active');
+		$('customerName').focus();
 	});
 
-	closeCheckout.addEventListener('click', () => {
-		checkoutModal.classList.remove('active');
+	$('closeCheckout').addEventListener('click', () => {
+		closeModal(checkoutModal);
+		openDrawer();
 	});
 
-	quoteForm.addEventListener('submit', (e) => {
+	orderForm.addEventListener('submit', (e) => {
 		e.preventDefault();
-		checkoutModal.classList.remove('active');
-		state.cart = [];
-		updateCartUI();
-		showToast('Quote request submitted successfully!');
+		const message = buildOrderMessage(
+			$('customerName').value.trim(),
+			$('deliveryMode').value,
+			$('orderNotes').value.trim()
+		);
+		window.open(whatsappLink(message), '_blank', 'noopener');
+
+		// o carrinho é mantido: se o WhatsApp não abrir, o cliente não perde o pedido
+		closeModal(checkoutModal);
+		showToast('Pedido aberto no WhatsApp. É só enviar!');
 	});
-}
 
-function updateCartUI() {
-	cartBadge.textContent = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+	// Fecha modais clicando fora ou com Esc
+	[productModal, checkoutModal].forEach(modal => {
+		modal.addEventListener('click', (e) => {
+			if (e.target === modal) closeModal(modal);
+		});
+	});
 
-	if (state.cart.length === 0) {
-		cartItemsContainer.innerHTML = `
-			<div style="text-align:center; padding: 3rem 1rem; color:var(--text-muted);">
-				<p style="font-size:0.9rem;">Seu carrinho está vazio.</p>
-			</div>
-		`;
-		cartTotalItems.textContent = '0';
-		cartLeadTime.textContent = '--';
-		cartSubtotal.textContent = '$0.00';
-		return;
-	}
-
-	let subtotal = 0;
-	let totalCount = 0;
-
-	cartItemsContainer.innerHTML = state.cart.map(item => {
-		const itemTotal = item.unitPrice * item.quantity;
-		subtotal += itemTotal;
-		totalCount += item.quantity;
-
-		return `
-			<div class="cart-item">
-				<div class="cart-item-preview">
-					<img src="${item.product.imageSrc}" alt="${item.product.title}">
-				</div>
-				<div class="cart-item-details">
-					<div class="cart-item-title">${item.product.title}</div>
-					<div class="cart-item-meta">${item.material} • ${item.colorName} • ${item.infill}% Infill</div>
-					<div class="cart-item-price">R$${itemTotal.toFixed(2)}</div>
-					<div class="qty-control">
-						<button class="qty-btn" onclick="changeQty('${item.cartItemId}', -1)">-</button>
-						<span style="font-size:0.85rem;">${item.quantity}</span>
-						<button class="qty-btn" onclick="changeQty('${item.cartItemId}', 1)">+</button>
-					</div>
-				</div>
-				<button onclick="removeItem('${item.cartItemId}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; position:absolute; top:8px; right:8px;">✕</button>
-			</div>
-		`;
-	}).join('');
-
-	cartTotalItems.textContent = totalCount;
-	cartLeadTime.textContent = totalCount > 5 ? '3-5 Dias' : '24-48 Horas';
-	cartSubtotal.textContent = `R$${subtotal.toFixed(2)}`;
-}
-
-function changeQty(cartItemId, delta) {
-	const item = state.cart.find(i => i.cartItemId === cartItemId);
-	if (item) {
-		item.quantity += delta;
-		if (item.quantity <= 0) {
-			state.cart = state.cart.filter(i => i.cartItemId !== cartItemId);
-		}
-		updateCartUI();
-	}
-}
-
-function removeItem(cartItemId) {
-	state.cart = state.cart.filter(i => i.cartItemId !== cartItemId);
-	updateCartUI();
-	showToast('Item removido');
+	document.addEventListener('keydown', (e) => {
+		if (e.key !== 'Escape') return;
+		closeModal(productModal);
+		closeModal(checkoutModal);
+		closeDrawer();
+	});
 }
 
 function showToast(message) {
-	const container = document.getElementById('toastContainer');
+	const container = $('toastContainer');
 	const toast = document.createElement('div');
 	toast.className = 'toast';
-	toast.innerHTML = `<span>${message}</span>`;
+	toast.textContent = message;
 	container.appendChild(toast);
 
 	setTimeout(() => {
