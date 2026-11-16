@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Foto em breve">
+  <rect width="400" height="400" fill="#f4f1f8"/>
+  <g transform="translate(140 120) scale(2)" opacity=".85">
+    <path d="M32 6 56 19v26L32 58 8 45V19z" fill="#c9bfe0"/>
+    <path d="M32 6 56 19 32 32 8 19z" fill="#fff" fill-opacity=".5"/>
+    <path d="M32 32v26L8 45V19z" fill="#000" fill-opacity=".1"/>
+  </g>
+  <text x="200" y="320" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" fill="#7d7598">Foto em breve</text>
+</svg>

@@ -1,0 +1,3 @@
+# .sh precisa de LF no Linux; .bat precisa de CRLF no Windows
+*.sh  text eol=lf
+*.bat text eol=crlf

@@ -64,7 +64,26 @@ const cartSubtotal = $('cartSubtotal');
 const checkoutModal = $('checkoutModal');
 const orderForm = $('orderForm');
 
-window.addEventListener('DOMContentLoaded', () => {
+// Foto de produto que não existe/falhou -> mostra o placeholder (cobre card, modal e carrinho)
+document.addEventListener('error', e => {
+	const img = e.target;
+	if (img.tagName === 'IMG' && img.src.includes('/img/produtos/')) img.src = 'img/placeholder.svg';
+}, true);
+
+// Carrega os produtos do banco via PHP; se a API não responder, mantém o catálogo do products.js
+async function loadProductsFromAPI() {
+	try {
+		const res = await fetch('api/produtos.php');
+		if (!res.ok) throw new Error('HTTP ' + res.status);
+		const rows = await res.json();
+		if (Array.isArray(rows) && rows.length) PRODUCTS.splice(0, PRODUCTS.length, ...rows);
+	} catch (err) {
+		console.warn('API indisponível, usando products.js:', err.message);
+	}
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+	await loadProductsFromAPI();
 	initStoreInfo();
 	initFilters();
 	renderCatalog();
@@ -257,9 +276,10 @@ function openProduct(productId) {
 	addToCartBtn.textContent = isOrder ? 'Adicionar encomenda' : 'Adicionar ao carrinho';
 
 	colorSelector.innerHTML = FILAMENT_COLORS.map((c, i) => `
-		<button type="button" class="color-swatch ${i === 0 ? 'active' : ''}" style="background: ${c.hex};" data-name="${c.name}" title="${c.name}" aria-label="${c.name}"></button>
+		<button type="button" class="color-swatch ${i === 0 ? 'active' : ''}" style="background: ${c.hex};" data-name="${c.name}" data-hex="${c.hex}" title="${c.name}" aria-label="${c.name}"></button>
 	`).join('');
 
+	updateColorPreview(FILAMENT_COLORS[0].hex);
 	updateModal();
 	productModal.classList.add('active');
 }
@@ -269,6 +289,25 @@ function updateModal() {
 	qtyValue.textContent = a.quantity;
 	colorName.textContent = `· ${a.color}`;
 	modalPrice.textContent = formatBRL(a.product.price * a.quantity);
+}
+
+function updateColorPreview(colorHex) {
+	const colorPreview = $('colorPreview');
+	const previewNote = $('previewNote');
+	const isOriginal = colorHex.includes('conic-gradient');
+
+	if (isOriginal) {
+		// "Cores originais": mostra a foto normal, sem simulação
+		modalPreviewImg.classList.remove('tinted');
+		colorPreview.style.opacity = '0';
+		previewNote.classList.remove('visible');
+	} else {
+		// dessatura a foto e sobrepõe a cor escolhida (mix-blend multiply)
+		modalPreviewImg.classList.add('tinted');
+		colorPreview.style.background = colorHex;
+		colorPreview.style.opacity = '0.55';
+		previewNote.classList.add('visible');
+	}
 }
 
 function closeModal(modal) {
@@ -457,6 +496,7 @@ function setupEventListeners() {
 		if (!swatch) return;
 		colorSelector.querySelectorAll('.color-swatch').forEach(s => s.classList.toggle('active', s === swatch));
 		state.activeProduct.color = swatch.dataset.name;
+		updateColorPreview(swatch.dataset.hex);
 		updateModal();
 	});
 
@@ -472,6 +512,22 @@ function setupEventListeners() {
 
 	addToCartBtn.addEventListener('click', addToCart);
 	$('closeProduct').addEventListener('click', () => closeModal(productModal));
+
+	// mantém pressionado para comparar com a foto real; solta para voltar à simulação
+	const toggleOriginalBtn = $('toggleOriginal');
+	const showOriginal = () => {
+		modalPreviewImg.classList.remove('tinted');
+		$('colorPreview').style.opacity = '0';
+	};
+	const showTinted = () => {
+		const activeSwatch = colorSelector.querySelector('.color-swatch.active');
+		if (activeSwatch) updateColorPreview(activeSwatch.dataset.hex);
+	};
+	toggleOriginalBtn.addEventListener('mousedown', showOriginal);
+	toggleOriginalBtn.addEventListener('touchstart', showOriginal);
+	toggleOriginalBtn.addEventListener('mouseup', showTinted);
+	toggleOriginalBtn.addEventListener('mouseleave', showTinted);
+	toggleOriginalBtn.addEventListener('touchend', showTinted);
 
 	// Drawer
 	const openDrawer = () => {

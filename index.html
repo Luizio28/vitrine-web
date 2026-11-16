@@ -151,7 +151,14 @@
             <button class="modal-close" id="closeProduct" aria-label="Fechar">✕</button>
 
             <div class="preview-pane">
-                <img id="modalPreviewImg" src="" alt="">
+                <div class="preview-wrapper">
+                    <img id="modalPreviewImg" src="" alt="">
+                    <div id="colorPreview" class="color-preview"></div>
+                    <div class="preview-note" id="previewNote">
+                        <span>Prévia da cor — simulação, não a foto real.</span>
+                        <button type="button" id="toggleOriginal">Ver foto</button>
+                    </div>
+                </div>
             </div>
 
             <div class="config-pane">
